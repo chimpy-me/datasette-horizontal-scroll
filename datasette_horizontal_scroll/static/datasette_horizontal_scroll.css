@@ -1,0 +1,42 @@
+.datasette-horizontal-scroll-bar {
+    position: fixed;
+    left: 0;
+    bottom: env(safe-area-inset-bottom, 0px);
+    height: 20px;
+    background: rgba(0, 0, 0, 0.08);
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.25s ease-in-out;
+    pointer-events: none;
+    cursor: pointer;
+}
+
+.datasette-horizontal-scroll-bar.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.datasette-horizontal-scroll-bar:hover {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.datasette-horizontal-scroll-thumb {
+    position: absolute;
+    top: 3px;
+    height: 14px;
+    min-width: 40px;
+    background: rgba(0, 0, 0, 0.40);
+    border-radius: 7px;
+    cursor: grab;
+    transition: background 0.15s ease;
+}
+
+.datasette-horizontal-scroll-thumb:hover {
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.datasette-horizontal-scroll-thumb.dragging {
+    background: rgba(0, 0, 0, 0.70);
+    cursor: grabbing;
+}
