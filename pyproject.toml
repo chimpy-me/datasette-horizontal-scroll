@@ -1,6 +1,6 @@
 [project]
 name = "datasette-horizontal-scroll"
-version = "0.1"
+version = "0.1.1"
 description = "A Datasette plugin that adds a fixed horizontal scrollbar at the bottom of the viewport for wide result tables."
 readme = "README.md"
 requires-python = ">=3.10"
