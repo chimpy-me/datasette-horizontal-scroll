@@ -3,39 +3,53 @@ name = "datasette-horizontal-scroll"
 version = "0.1"
 description = "A Datasette plugin that adds a fixed horizontal scrollbar at the bottom of the viewport for wide result tables."
 readme = "README.md"
-authors = [{name = "Ray Voelker"}]
-license = "Apache-2.0"
-classifiers=[
-    "Framework :: Datasette"
-]
 requires-python = ">=3.10"
+authors = [{ name = "Ray Voelker" }]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+classifiers = [
+    "Framework :: Datasette",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
+]
+
 dependencies = [
-    "datasette"
+    "datasette>=0.58",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pytest-asyncio"
+    "pytest-asyncio",
 ]
+
+[project.urls]
+Homepage = "https://github.com/chimpy-me/datasette-horizontal-scroll"
+Changelog = "https://github.com/chimpy-me/datasette-horizontal-scroll/releases"
+Issues = "https://github.com/chimpy-me/datasette-horizontal-scroll/issues"
+CI = "https://github.com/chimpy-me/datasette-horizontal-scroll/actions"
+
+[project.entry-points.datasette]
+horizontal_scroll = "datasette_horizontal_scroll"
 
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
-
-[project.urls]
-Homepage = "https://github.com/rayvoelker/datasette-horizontal-scroll"
-Changelog = "https://github.com/rayvoelker/datasette-horizontal-scroll/releases"
-Issues = "https://github.com/rayvoelker/datasette-horizontal-scroll/issues"
-CI = "https://github.com/rayvoelker/datasette-horizontal-scroll/actions"
-
-[project.entry-points.datasette]
-horizontal_scroll = "datasette_horizontal_scroll"
-
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.package-data]
 datasette_horizontal_scroll = ["static/*"]
