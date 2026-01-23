@@ -8,6 +8,7 @@
 
   // scrollEl is the *actual* horizontal scroll container (wrapper OR table)
   let scrollEl = null;
+  // table is the content element used to choose targets; scroll width is taken from scrollEl
   let table = null;
 
   let hideTimeout = null;
@@ -29,6 +30,7 @@
 
   function ensureBarExists() {
     if (scrollBar) return;
+
     scrollBar = document.createElement('div');
     scrollBar.id = BAR_ID;
     scrollBar.className = 'datasette-horizontal-scroll-bar';
@@ -40,39 +42,48 @@
     document.body.appendChild(scrollBar);
   }
 
-  function overflowXCanScroll(el) {
+  function isXScrollable(el) {
+    if (!el) return false;
     const ox = getComputedStyle(el).overflowX;
-    return ox !== 'visible' && ox !== 'clip';
+    if (ox === 'visible' || ox === 'clip') return false;
+    return el.scrollWidth > el.clientWidth + 1;
   }
 
   function findBestScrollTarget() {
     const wrappers = Array.from(document.querySelectorAll('.table-wrapper'));
     const viewportH = window.innerHeight;
 
-    // Fallback for template variations
+    // Fallback for template variations or pages without table-wrapper
     if (!wrappers.length) {
-      const t = document.querySelector('table.rows-and-columns') || document.querySelector('table');
+      const t =
+        document.querySelector('table.rows-and-columns') ||
+        document.querySelector('table');
       if (!t) return { scrollEl: null, table: null };
       // In compact layouts the table itself is often the scroller
       return { scrollEl: t, table: t };
     }
 
     const scored = wrappers.map(w => {
-      const t = w.querySelector('table.rows-and-columns') || w.querySelector('table');
+      const t =
+        w.querySelector('table.rows-and-columns') ||
+        w.querySelector('table');
       if (!t) return null;
 
-      // Prefer wrapper if it can scroll; otherwise use table
-      let scroller = overflowXCanScroll(w) ? w : t;
-
-      // If wrapper is theoretically scrollable but table is the real scroller,
-      // pick table (common when CSS applies overflow-x:auto to table).
-      if (!overflowXCanScroll(w) && overflowXCanScroll(t)) {
+      // Choose the element that actually scrolls horizontally.
+      // Prefer wrapper if it truly scrolls; otherwise fall back to the table.
+      let scroller;
+      if (isXScrollable(w)) {
+        scroller = w;
+      } else if (isXScrollable(t)) {
         scroller = t;
+      } else {
+        // Fallback: if neither is currently scrollable, keep wrapper for geometry.
+        scroller = w;
       }
 
       const rect = scroller.getBoundingClientRect();
       const visible = rect.bottom > 0 && rect.top < viewportH;
-      const overflow = t.scrollWidth - scroller.clientWidth;
+      const overflow = scroller.scrollWidth - scroller.clientWidth;
 
       return { scroller, t, visible, overflow };
     }).filter(Boolean);
@@ -89,13 +100,13 @@
 
   function hasOverflow() {
     if (!scrollEl || !table) return false;
-    return table.scrollWidth > scrollEl.clientWidth;
+    return scrollEl.scrollWidth > scrollEl.clientWidth + 1;
   }
 
   function updateThumbPosition() {
     if (!scrollThumb || !scrollEl || !table || !scrollBar) return;
 
-    const scrollableWidth = table.scrollWidth - scrollEl.clientWidth;
+    const scrollableWidth = scrollEl.scrollWidth - scrollEl.clientWidth;
     if (scrollableWidth <= 0) {
       scrollThumb.style.left = '0px';
       return;
@@ -131,7 +142,7 @@
     scrollBar.style.width = rect.width + 'px';
 
     const trackWidth = rect.width;
-    const visibleRatio = scrollEl.clientWidth / Math.max(1, table.scrollWidth);
+    const visibleRatio = scrollEl.clientWidth / Math.max(1, scrollEl.scrollWidth);
     const rawThumbWidth = Math.max(40, trackWidth * visibleRatio);
     const thumbWidth = Math.max(40, Math.min(trackWidth, rawThumbWidth));
     scrollThumb.style.width = thumbWidth + 'px';
@@ -211,7 +222,7 @@
       let newThumbLeft = clickX - thumbWidth / 2;
       newThumbLeft = Math.max(0, Math.min(newThumbLeft, maxThumbLeft));
 
-      const scrollableWidth = table.scrollWidth - scrollEl.clientWidth;
+      const scrollableWidth = scrollEl.scrollWidth - scrollEl.clientWidth;
       const scrollRatio = newThumbLeft / maxThumbLeft;
       scrollEl.scrollLeft = scrollRatio * scrollableWidth;
     });
@@ -234,7 +245,7 @@
       if (maxThumbLeft <= 0) return;
 
       const deltaX = e.clientX - dragStartX;
-      const scrollableWidth = table.scrollWidth - scrollEl.clientWidth;
+      const scrollableWidth = scrollEl.scrollWidth - scrollEl.clientWidth;
 
       const scrollDelta = (deltaX / maxThumbLeft) * scrollableWidth;
       scrollEl.scrollLeft = dragStartScrollLeft + scrollDelta;
@@ -250,6 +261,7 @@
     });
     document.addEventListener('mouseleave', stopDragging);
 
+    // Show bar when cursor approaches bottom of viewport
     document.addEventListener('mousemove', function(e) {
       const windowHeight = window.innerHeight;
       if (e.clientY > windowHeight - 80 && hasOverflow()) {
